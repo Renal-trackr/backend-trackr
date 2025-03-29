@@ -1,7 +1,14 @@
 {
   "name": "backend_renaltrackr",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "server.js",
+  "type": "module",
+
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "description": "Backend for RenalTrackr, a web application for tracking kidney health.",
   "license": "MIT",
   "dependencies": {
     "dotenv": "^16.4.7",
