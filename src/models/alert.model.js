@@ -6,6 +6,7 @@ const AlertSchema = new Schema({
     message: {type: String, required: true},
     status: {type: String, enum: ["Nouveau", "En cours", "Résolu"], default: "Nouveau"},
     created_at: {type: Date, default: Date.now},
+    analysis_id: {type: Schema.Types.ObjectId, ref: "MedicalAnalysis"},
 }, {
     timestamps: {
         createdAt: 'created_at',

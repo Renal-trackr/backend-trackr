@@ -8,6 +8,7 @@ const DoctorSchema = new Schema({
     phoneNumber: { type: String, required: true },
     workflows_ids: [{ type: Schema.Types.ObjectId, ref: "Workflow" }],
     monitored_patients: [{ type: Schema.Types.ObjectId, ref: "Patient" }],
+    user_id: {type: Schema.Types.ObjectId, ref: "User", required: true},
 }, {
     timestamps: {
         createdAt: 'created_at',

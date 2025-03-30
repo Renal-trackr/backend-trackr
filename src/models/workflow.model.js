@@ -3,7 +3,7 @@ import {model, Schema} from "mongoose";
 const WorkflowSchema = new Schema({
     name: {type: String, required: true},
     description: {type: String, required: true},
-    doctor_id: {type: Schema.Types.ObjectId, ref: "User", required: true},
+    doctor_id: {type: Schema.Types.ObjectId, ref: "Doctor", required: true},
     steps: [{type: Schema.Types.Mixed}],
     created_at: {type: Date, default: Date.now},
 }, {

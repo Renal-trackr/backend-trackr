@@ -14,7 +14,7 @@ const PatientSchema = new Schema({
     medical_history: [Schema.Types.Mixed],
     appointment_ids: [{ type: Schema.Types.ObjectId, ref: "Appointment" }],
     antecedents: [Schema.Types.Mixed ],
-    doctor_ref: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    doctor_ref: { type: Schema.Types.ObjectId, ref: "Doctor", required: true },
 }, {
     timestamps: {
         createdAt: 'created_at',

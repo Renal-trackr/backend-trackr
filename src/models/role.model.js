@@ -5,7 +5,7 @@ const RoleSchema = new Schema({
     _id: {type: String, default: uuidv4},
     name: {
         type: String,
-        enum: ["ADMIN", "MEDECIN", "LABORANTIN"],
+        enum: ["ADMIN", "MEDECIN"],
         required: true,
         unique: true,
     },
