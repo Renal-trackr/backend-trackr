@@ -7,20 +7,6 @@ import mongoose from 'mongoose';
 
 class DoctorService {
   /**
-   * Generate random password
-   * @param {Number} length - Password length
-   * @returns {String} Generated password
-   */
-  generatePassword(length = 10) {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
-    let password = '';
-    for (let i = 0; i < length; i++) {
-      password += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return password;
-  }
-  
-  /**
    * Create doctor and user account
    * @param {Object} doctorData - Doctor data
    * @returns {Promise<Object>} Created doctor
@@ -30,8 +16,8 @@ class DoctorService {
     session.startTransaction();
     
     try {
-      // Generate password for the doctor
-      const tempPassword = this.generatePassword();
+      // Generate password using the email service
+      const tempPassword = emailService.generatePassword();
       const hashedPassword = await bcrypt.hash(tempPassword, 10);
       
       // Find doctor role

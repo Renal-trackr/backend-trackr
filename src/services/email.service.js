@@ -1,16 +1,27 @@
 import nodemailer from 'nodemailer';
+import crypto from 'crypto';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 class EmailService {
   constructor() {
+    // Gmail configuration
     this.transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST,
-      port: process.env.EMAIL_PORT,
-      secure: process.env.EMAIL_SECURE === 'true',
+      service: 'gmail',
       auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
+        user: process.env.EMAIL,
+        pass: process.env.EMAIL_PASSWORD
       }
     });
+  }
+  
+  /**
+   * Generate random password
+   * @returns {String} Generated password
+   */
+  generatePassword() {
+    return crypto.randomBytes(8).toString('hex');
   }
   
   /**
@@ -23,7 +34,7 @@ class EmailService {
     const { email, firstname, lastname } = doctor;
     
     const mailOptions = {
-      from: `"RenalTrackr" <${process.env.EMAIL_USER}>`,
+      from: process.env.EMAIL,
       to: email,
       subject: 'Welcome to RenalTrackr - Your Account Details',
       html: `
@@ -37,11 +48,20 @@ class EmailService {
           <p>For security reasons, please change your password after your first login.</p>
           <p>If you have any questions, please contact the administrator.</p>
           <p>Thank you for joining RenalTrackr!</p>
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+            <p style="color: #888; font-size: 12px;">IMPORTANT: These credentials are strictly confidential. Do not share them with anyone.</p>
+          </div>
         </div>
       `
     };
     
-    return this.transporter.sendMail(mailOptions);
+    try {
+      const info = await this.transporter.sendMail(mailOptions);
+      return info;
+    } catch (error) {
+      console.error('Error sending email:', error);
+      throw new Error('Failed to send email');
+    }
   }
 }
 

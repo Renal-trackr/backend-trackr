@@ -4,8 +4,9 @@ import authMiddleware from '../middlewares/auth.middleware.js';
 
 const AuthRouter = Router();
 
-// Login route
+// Login routes
 AuthRouter.post('/login', authController.login);
+AuthRouter.post('/doctor/login', authController.doctorLogin);
 
 // Logout route - requires authentication
 AuthRouter.post('/logout', authMiddleware.verifyToken, authController.logout);

@@ -39,8 +39,8 @@ class SeedService {
         
         // Create the admin user
         const adminUser = new User({
-          firstname: 'Admin',
-          lastName: 'User',
+          firstname: 'HOUNDJI',
+          lastName: 'Ratheil',
           email: adminEmail,
           password: hashedPassword,
           role_id: adminRole._id

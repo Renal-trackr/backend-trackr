@@ -1,5 +1,6 @@
 import User from '../models/user.model.js';
 import Role from '../models/role.model.js';
+import Doctor from '../models/doctor.model.js';
 import Session from '../models/session.model.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -56,6 +57,78 @@ class AuthService {
       lastName: user.lastName,
       token,
       expiresAt
+    };
+  }
+
+  /**
+   * Doctor login with session creation and doctor profile retrieval
+   * @param {Object} credentials - User credentials
+   * @param {Object} metadata - Session metadata (user agent, IP)
+   * @returns {Promise<Object>} Login data with token and doctor profile
+   */
+  async doctorLogin(credentials, metadata = {}) {
+    const { email, password } = credentials;
+    
+    // Find user by email
+    const user = await User.findOne({ email });
+    if (!user) {
+      throw new Error('Invalid credentials');
+    }
+    
+    // Verify password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      throw new Error('Invalid credentials');
+    }
+    
+    // Check if user is doctor
+    const doctorRole = await Role.findOne({ name: 'MEDECIN' });
+    if (!doctorRole || user.role_id !== doctorRole._id) {
+      throw new Error('Access denied. Not a doctor account.');
+    }
+    
+    // Find doctor profile
+    const doctorProfile = await Doctor.findOne({ user_id: user._id });
+    if (!doctorProfile) {
+      throw new Error('Doctor profile not found');
+    }
+    
+    // Generate JWT token with 1-hour expiration
+    const token = jwt.sign(
+      { userId: user._id, role: user.role_id },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+    
+    // Calculate expiration time (1 hour from now)
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 1);
+    
+    // Create session in database
+    const session = new Session({
+      user_id: user._id,
+      token,
+      expires_at: expiresAt,
+      user_agent: metadata.userAgent,
+      ip_address: metadata.ipAddress,
+      is_active: true
+    });
+    
+    await session.save();
+    
+    return {
+      userId: user._id,
+      role: user.role_id,
+      token,
+      expiresAt,
+      doctor: {
+        id: doctorProfile._id,
+        firstname: doctorProfile.firstname,
+        lastname: doctorProfile.lastname,
+        speciality: doctorProfile.speciality,
+        email: doctorProfile.email,
+        phoneNumber: doctorProfile.phoneNumber
+      }
     };
   }
 

@@ -41,6 +41,45 @@ class AuthController {
   }
   
   /**
+   * Login doctor with session creation
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   */
+  async doctorLogin(req, res) {
+    try {
+      const { email, password } = req.body;
+      
+      // Validate required fields
+      if (!email || !password) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email and password are required'
+        });
+      }
+      
+      // Get metadata for session tracking
+      const metadata = {
+        userAgent: req.headers['user-agent'],
+        ipAddress: req.ip
+      };
+      
+      // Login doctor and create session
+      const loginData = await authService.doctorLogin({ email, password }, metadata);
+      
+      return res.status(200).json({
+        success: true,
+        message: 'Doctor login successful',
+        data: loginData
+      });
+    } catch (error) {
+      return res.status(401).json({
+        success: false,
+        message: error.message || 'Invalid credentials'
+      });
+    }
+  }
+  
+  /**
    * Logout user by invalidating session
    * @param {Object} req - Express request object
    * @param {Object} res - Express response object
