@@ -1,4 +1,5 @@
 import patientService from '../services/patient.service.js';
+import actionHistoryService from '../services/actionHistory.service.js';
 
 class PatientController {
   /**
@@ -41,6 +42,13 @@ class PatientController {
 
       // Create patient
       const newPatient = await patientService.createPatient(patientData);
+      
+      // Record action in history
+      actionHistoryService.recordAction({
+        user_id: req.user._id,
+        action_type: 'REGISTER_PATIENT',
+        description: `Registered new patient: ${newPatient.firstname} ${newPatient.lastname} (ID: ${newPatient._id})`
+      });
       
       return res.status(201).json({
         success: true,
@@ -119,6 +127,141 @@ class PatientController {
       return res.status(500).json({ 
         success: false, 
         message: error.message || 'Error retrieving patients' 
+      });
+    }
+  }
+
+  /**
+   * Update a patient
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   */
+  async updatePatient(req, res) {
+    try {
+      const patientId = req.params.id;
+      const updateData = req.body;
+      
+      const updatedPatient = await patientService.updatePatient(patientId, updateData);
+      
+      // Record the action with specific details
+      actionHistoryService.recordAction({
+        user_id: req.user._id,
+        action_type: 'UPDATE_PATIENT',
+        description: `Updated patient information for ${updatedPatient.firstname} ${updatedPatient.lastname} (ID: ${patientId})`
+      });
+      
+      return res.status(200).json({
+        success: true,
+        message: 'Patient updated successfully',
+        data: updatedPatient
+      });
+    } catch (error) {
+      return res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+
+  /**
+   * Add treatment to a patient
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   */
+  async addTreatment(req, res) {
+    try {
+      const patientId = req.params.id;
+      const { treatment } = req.body;
+      
+      if (!treatment) {
+        return res.status(400).json({
+          success: false,
+          message: 'Treatment is required'
+        });
+      }
+      
+      const updatedPatient = await patientService.addTreatment(patientId, treatment);
+      
+      // Record action with specific treatment details
+      actionHistoryService.recordAction({
+        user_id: req.user._id,
+        action_type: 'ADD_TREATMENT',
+        description: `Added treatment "${treatment}" for patient ${updatedPatient.firstname} ${updatedPatient.lastname} (ID: ${patientId})`
+      });
+      
+      return res.status(200).json({
+        success: true,
+        message: 'Treatment added successfully',
+        data: updatedPatient
+      });
+    } catch (error) {
+      return res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+
+  /**
+   * Add medical history to a patient
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   */
+  async addMedicalHistory(req, res) {
+    try {
+      const patientId = req.params.id;
+      const historyEntry = req.body;
+      
+      const updatedPatient = await patientService.addMedicalHistory(patientId, historyEntry);
+      
+      // Record the action asynchronously
+      actionHistoryService.recordAction({
+        user_id: req.user._id,
+        action_type: 'ADD_MEDICAL_HISTORY',
+        description: `Added medical history entry for patient ID: ${patientId}`
+      });
+      
+      return res.status(200).json({
+        success: true,
+        message: 'Medical history added successfully',
+        data: updatedPatient
+      });
+    } catch (error) {
+      return res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+
+  /**
+   * Add antecedent to a patient
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   */
+  async addAntecedent(req, res) {
+    try {
+      const patientId = req.params.id;
+      const antecedent = req.body;
+      
+      const updatedPatient = await patientService.addAntecedent(patientId, antecedent);
+      
+      // Record the action asynchronously
+      actionHistoryService.recordAction({
+        user_id: req.user._id,
+        action_type: 'ADD_ANTECEDENT',
+        description: `Added antecedent for patient ID: ${patientId}`
+      });
+      
+      return res.status(200).json({
+        success: true,
+        message: 'Antecedent added successfully',
+        data: updatedPatient
+      });
+    } catch (error) {
+      return res.status(400).json({
+        success: false,
+        message: error.message
       });
     }
   }

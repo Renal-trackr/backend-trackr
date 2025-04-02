@@ -31,12 +31,12 @@ class AuthService {
     const token = jwt.sign(
       { userId: user._id, role: user.role_id },
       process.env.JWT_SECRET,
-      { expiresIn: '1h' }
+      { expiresIn: '24h' }
     );
     
     // Calculate expiration time (1 hour from now)
     const expiresAt = new Date();
-    expiresAt.setHours(expiresAt.getHours() + 1);
+    expiresAt.setHours(expiresAt.getHours() + 24);
     
     // Create session in database
     const session = new Session({
@@ -97,12 +97,12 @@ class AuthService {
     const token = jwt.sign(
       { userId: user._id, role: user.role_id },
       process.env.JWT_SECRET,
-      { expiresIn: '1h' }
+      { expiresIn: '24h' }
     );
     
     // Calculate expiration time (1 hour from now)
     const expiresAt = new Date();
-    expiresAt.setHours(expiresAt.getHours() + 1);
+    expiresAt.setHours(expiresAt.getHours() + 24);
     
     // Create session in database
     const session = new Session({

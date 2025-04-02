@@ -1,5 +1,6 @@
 import doctorService from '../services/doctor.service.js';
 import authService from '../services/auth.service.js';
+import actionHistoryService from '../services/actionHistory.service.js';
 
 class DoctorController {
   /**
@@ -40,6 +41,13 @@ class DoctorController {
       
       // Create doctor
       const newDoctor = await doctorService.createDoctor(doctorData);
+      
+      // Record detailed action
+      actionHistoryService.recordAction({
+        user_id: req.user._id,
+        action_type: 'CREATE_DOCTOR',
+        description: `Created new doctor account for Dr. ${newDoctor.firstname} ${newDoctor.lastname} (${newDoctor.speciality})`
+      });
       
       return res.status(201).json({
         success: true,
