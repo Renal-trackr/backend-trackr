@@ -18,34 +18,34 @@ class WorkflowService {
     session.startTransaction();
     
     try {
-      // Validate references
+
       if (!mongoose.Types.ObjectId.isValid(workflowData.doctor_id)) {
         throw new Error('Invalid doctor reference');
       }
       
-      // Ensure patients_ids exists and is an array
+
       if (!workflowData.patients_ids) {
         workflowData.patients_ids = [];
       } else if (!Array.isArray(workflowData.patients_ids)) {
-        // Convert to array if it's a single value
+
         workflowData.patients_ids = [workflowData.patients_ids];
       }
       
-      // Remove patient_id if it exists
+
       delete workflowData.patient_id;
       
-      // Validate each patient ID
+
       for (const patientId of workflowData.patients_ids) {
         if (!mongoose.Types.ObjectId.isValid(patientId)) {
           throw new Error(`Invalid patient ID: ${patientId}`);
         }
       }
       
-      // Extract steps from workflow data
+
       const stepsData = workflowData.stepsData || [];
       delete workflowData.stepsData;
       
-      // Create workflow without steps initially
+
       const workflow = new Workflow({
         ...workflowData,
         steps: []
@@ -53,7 +53,7 @@ class WorkflowService {
       
       await workflow.save({ session });
       
-      // Create and link steps
+
       const stepIds = [];
       
       for (let i = 0; i < stepsData.length; i++) {
@@ -73,11 +73,11 @@ class WorkflowService {
         stepIds.push(step._id);
       }
       
-      // Update workflow with step references
+
       workflow.steps = stepIds;
       await workflow.save({ session });
       
-      // Schedule first step if workflow is active
+
       if (workflow.status === 'active' && stepIds.length > 0) {
         const firstStep = await WorkflowStep.findById(stepIds[0]);
         await this.scheduleWorkflowStep(workflow, firstStep);
@@ -85,7 +85,7 @@ class WorkflowService {
       
       await session.commitTransaction();
       
-      // Fetch complete workflow with populated steps
+
       const createdWorkflow = await Workflow.findById(workflow._id)
         .populate('steps')
         .exec();
@@ -107,10 +107,10 @@ class WorkflowService {
    * @returns {Promise<Object>} Created workflow
    */
   async createWorkflowsForMultiplePatients(workflowData, patientIds) {
-    // Set the patients_ids field directly
+
     workflowData.patients_ids = patientIds;
     
-    // Just create a single workflow with multiple patients
+
     return this.createWorkflow(workflowData);
   }
 
@@ -124,23 +124,23 @@ class WorkflowService {
     session.startTransaction();
     
     try {
-      // Validate doctor reference
+
       if (!mongoose.Types.ObjectId.isValid(workflowData.doctor_id)) {
         throw new Error('Invalid doctor reference');
       }
       
-      // Mark as template and remove patient_id
+
       const templateData = {
         ...workflowData,
         is_template: true
       };
       delete templateData.patient_id;
       
-      // Extract steps data
+
       const stepsData = templateData.stepsData || [];
       delete templateData.stepsData;
       
-      // Create template workflow without steps initially
+
       const workflow = new Workflow({
         ...templateData,
         steps: []
@@ -148,7 +148,7 @@ class WorkflowService {
       
       await workflow.save({ session });
       
-      // Create and link steps
+
       const stepIds = [];
       
       for (let i = 0; i < stepsData.length; i++) {
@@ -168,13 +168,13 @@ class WorkflowService {
         stepIds.push(step._id);
       }
       
-      // Update workflow with step references
+
       workflow.steps = stepIds;
       await workflow.save({ session });
       
       await session.commitTransaction();
       
-      // Fetch complete workflow with populated steps
+
       const templateWorkflow = await Workflow.findById(workflow._id)
         .populate('steps')
         .exec();
@@ -196,13 +196,13 @@ class WorkflowService {
   async createTestBasedWorkflow(workflowData) {
     const { name, patients_ids, doctor_id, test, alert_condition, urgent_action } = workflowData;
     
-    // Ensure patients_ids is an array
+
     const patientsList = Array.isArray(patients_ids) ? patients_ids : [patients_ids];
     
-    // Default delay if not specified
+
     const delayDays = test.delay_days || 7;
     
-    // Create a proper workflow structure from simplified format
+
     const fullWorkflowData = {
       name,
       description: `Automated workflow: ${name}`,
@@ -210,7 +210,7 @@ class WorkflowService {
       patients_ids: patientsList,
       status: 'active',
       stepsData: [
-        // Step 1: Reminder for test
+
         {
           name: `Reminder: ${test.type} test`,
           description: test.description || `Reminder to schedule ${test.type} test`,
@@ -227,7 +227,7 @@ class WorkflowService {
             target: 'doctor'
           }
         },
-        // Step 2: Patient notification
+
         {
           name: `Patient notification: ${test.type} test`,
           description: `Notify patient about upcoming ${test.type} test`,
@@ -236,7 +236,7 @@ class WorkflowService {
           condition: {
             timing: {
               type: 'delay',
-              value: `${delayDays - 1}d` // One day before test
+              value: `${delayDays - 1}d` 
             }
           },
           action: {
@@ -244,7 +244,7 @@ class WorkflowService {
             target: 'patient'
           }
         },
-        // Step 3: Alert condition check
+
         {
           name: `Evaluate ${test.type} results`,
           description: `Check if ${test.type} results trigger an alert`,
@@ -267,7 +267,7 @@ class WorkflowService {
       ]
     };
     
-    // Add urgent action step if needed
+
     if (urgent_action && urgent_action.schedule_appointment) {
       fullWorkflowData.stepsData.push({
         name: 'Schedule urgent appointment',
@@ -275,7 +275,7 @@ class WorkflowService {
         order: 4,
         type: 'alert',
         condition: {
-          // This step is triggered by previous step's evaluation
+
           dependsOn: 3,
           outcome: 'alert_triggered'
         },
@@ -284,12 +284,12 @@ class WorkflowService {
           alertType: 'urgent',
           urgency_level: urgent_action.urgency_level || 'high',
           message: urgent_action.message,
-          timing: { days: 2 } // Schedule within 2 days by default
+          timing: { days: 2 } 
         }
       });
     }
     
-    // Create the full workflow
+
     return this.createWorkflow(fullWorkflowData);
   }
 
@@ -353,15 +353,14 @@ class WorkflowService {
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       throw new Error('Invalid user ID');
     }
-    
-    // First find the doctor profile associated with this user
+
     const doctor = await Doctor.findOne({ user_id: userId });
     if (!doctor) {
-      // No doctor profile found for this user
+
       return [];
     }
     
-    // Get workflows using the doctor's ID
+
     return Workflow.find({ doctor_id: doctor._id })
       .populate('steps')
       .exec();
@@ -382,11 +381,11 @@ class WorkflowService {
     session.startTransaction();
     
     try {
-      // Extract steps data if present
+
       const stepsData = updateData.stepsData || [];
       delete updateData.stepsData;
       
-      // Update workflow basic data
+
       const workflow = await Workflow.findByIdAndUpdate(
         id,
         { $set: updateData },
@@ -397,19 +396,19 @@ class WorkflowService {
         throw new Error('Workflow not found');
       }
       
-      // Handle step updates if provided
+
       if (stepsData.length > 0) {
-        // Update existing steps and create new ones
+
         for (const stepData of stepsData) {
           if (stepData._id) {
-            // Update existing step
+
             await WorkflowStep.findByIdAndUpdate(
               stepData._id,
               { $set: stepData },
               { runValidators: true, session }
             );
           } else {
-            // Create new step
+
             const step = new WorkflowStep({
               workflow_id: workflow._id,
               name: stepData.name,
@@ -422,18 +421,17 @@ class WorkflowService {
             
             await step.save({ session });
             
-            // Add to workflow steps
             workflow.steps.push(step._id);
           }
         }
         
-        // Save workflow with updated steps
+
         await workflow.save({ session });
       }
       
       await session.commitTransaction();
       
-      // Return updated workflow with populated steps
+
       const updatedWorkflow = await Workflow.findById(id)
         .populate('steps')
         .exec();
@@ -461,10 +459,10 @@ class WorkflowService {
     session.startTransaction();
     
     try {
-      // Delete all steps first
+
       await WorkflowStep.deleteMany({ workflow_id: id }, { session });
       
-      // Delete the workflow
+
       const result = await Workflow.deleteOne({ _id: id }, { session });
       
       await session.commitTransaction();
@@ -486,13 +484,13 @@ class WorkflowService {
    */
   async scheduleWorkflowStep(workflow, step) {
     try {
-      // Calculate any delay based on step condition
+
       const delay = await this.calculateStepDelay(step, workflow);
       
-      // For each patient in the workflow, schedule a task
+
       const jobs = [];
       for (const patientId of workflow.patients_ids) {
-        // Schedule the task
+
         const job = await queueService.addWorkflowTask(
           {
             workflowId: workflow._id,
@@ -515,7 +513,7 @@ class WorkflowService {
       return jobs;
     } catch (error) {
       console.error('Error scheduling workflow step:', error);
-      // Return a default job that will retry
+
       return { error: error.message };
     }
   }
@@ -527,7 +525,7 @@ class WorkflowService {
    * @returns {Promise<Number>} Delay in milliseconds
    */
   async calculateStepDelay(step, workflow) {
-    // Default no delay
+
     if (!step.condition || !step.condition.timing) {
       return 0;
     }
@@ -555,7 +553,7 @@ class WorkflowService {
         break;
     }
     
-    // Ensure minimum delay (1 second) if in the past
+
     return Math.max(scheduleTime - now, 1000);
   }
 
@@ -567,7 +565,7 @@ class WorkflowService {
   async processWorkflowStep(data) {
     const { workflowId, stepId, patientId } = data;
     
-    // Get workflow, step and patient
+
     const workflow = await Workflow.findById(workflowId);
     const step = await WorkflowStep.findById(stepId);
     const patient = await Patient.findById(patientId);
@@ -577,7 +575,7 @@ class WorkflowService {
     }
     
     try {
-      // Execute step based on type
+
       let result = null;
       
       switch (step.type) {
@@ -594,16 +592,16 @@ class WorkflowService {
           break;
       }
       
-      // Update step status
+
       step.status = 'completed';
       await step.save();
       
-      // Find and schedule next step
+
       await this.scheduleNextStep(workflow);
       
       return result;
     } catch (error) {
-      // Mark step as failed
+
       step.status = 'failed';
       await step.save();
       
@@ -617,12 +615,12 @@ class WorkflowService {
    * @returns {Promise<Object|null>} Next step or null if completed
    */
   async scheduleNextStep(workflow) {
-    // Get all steps in order
+
     const steps = await WorkflowStep.find({ workflow_id: workflow._id })
       .sort({ order: 1 })
       .exec();
     
-    // Find current position and next pending step
+
     let completedAll = true;
     let nextStep = null;
     
@@ -634,14 +632,14 @@ class WorkflowService {
       }
     }
     
-    // If all steps complete, mark workflow as completed
+
     if (completedAll) {
       workflow.status = 'completed';
       await workflow.save();
       return null;
     }
     
-    // Schedule next step
+
     if (nextStep) {
       return this.scheduleWorkflowStep(workflow, nextStep);
     }
@@ -657,12 +655,11 @@ class WorkflowService {
    * @returns {Promise<Object>} Result
    */
   async executeReminderStep(step, workflow, patient) {
-    // Here you would implement reminder logic
-    // For example, sending a notification, SMS, or email
+
     
     console.log(`Executing reminder step: ${step.name} for patient ${patient.firstname} ${patient.lastname}`);
     
-    // Example: Create a notification
+
     return {
       type: 'reminder',
       message: step.action.message || `Reminder: ${step.name}`,
@@ -678,13 +675,11 @@ class WorkflowService {
    * @returns {Promise<Object>} Result
    */
   async executeTaskStep(step, workflow, patient) {
-    // Implement task logic here
-    // Tasks could create appointments, medical tests, etc.
-    
+
     console.log(`Executing task step: ${step.name} for patient ${patient.firstname} ${patient.lastname}`);
     
     if (step.action.type === 'schedule_appointment') {
-      // Schedule an appointment
+
       return queueService.scheduleAppointment({
         patient_id: patient._id,
         doctor_id: workflow.doctor_id,
@@ -709,7 +704,7 @@ class WorkflowService {
    * @returns {Promise<Object>} Result
    */
   async executeAlertStep(step, workflow, patient) {
-    // Implementation for alert generation
+
     
     console.log(`Executing alert step: ${step.name} for patient ${patient.firstname} ${patient.lastname}`);
     
@@ -737,7 +732,7 @@ class WorkflowService {
     session.startTransaction();
     
     try {
-      // Get the workflow and step
+
       const workflow = await Workflow.findById(workflowId);
       const step = await WorkflowStep.findById(stepId);
       
@@ -749,7 +744,7 @@ class WorkflowService {
         throw new Error('Step is not an analysis test');
       }
       
-      // Record the test result
+
       const analysis = new MedicalAnalysis({
         patient_id: patientId,
         doctor_id: workflow.doctor_id,
@@ -762,26 +757,24 @@ class WorkflowService {
       });
       
       await analysis.save({ session });
-      
-      // Store result in the step
+
       step.result = results;
       step.status = 'completed';
       await step.save({ session });
       
-      // Determine next step based on test results
+
       let nextStepId = null;
       let alertCreated = false;
       
-      // Check conditions
+
       if (step.condition && typeof step.condition === 'object') {
         const { parameter, operator, value, next_steps } = step.condition;
         
-        // If this step has conditions to evaluate
+
         if (parameter && operator && value !== undefined && results[parameter] !== undefined) {
           const testValue = results[parameter];
           let conditionMet = false;
-          
-          // Evaluate the condition
+
           switch (operator) {
             case '=':
             case 'eq':
@@ -805,10 +798,10 @@ class WorkflowService {
               break;
           }
           
-          // If condition met and there's an action defined
+
           if (conditionMet && step.action && step.action.type) {
             if (step.action.type === 'create_alert') {
-              // Create an alert
+
               const alert = {
                 patient_id: patientId,
                 alert_type: step.action.alert_type || 'test_result',
@@ -821,7 +814,7 @@ class WorkflowService {
             }
             
             if (step.action.type === 'schedule_appointment') {
-              // Schedule an urgent appointment
+
               const appointmentData = {
                 patient_id: patientId,
                 doctor_id: workflow.doctor_id,
@@ -835,7 +828,7 @@ class WorkflowService {
             }
           }
           
-          // Determine the next step based on the condition outcome
+
           if (next_steps) {
             nextStepId = conditionMet ? 
               next_steps.abnormal || next_steps.true : 
@@ -844,22 +837,22 @@ class WorkflowService {
         }
       }
       
-      // If no specific next step was determined but we have an ordinal next step
+
       if (!nextStepId) {
         const steps = await WorkflowStep.find({ workflow_id: workflowId })
           .sort({ order: 1 })
           .exec();
         
-        // Find current step's position
+
         const currentIndex = steps.findIndex(s => s._id.toString() === stepId);
         
-        // Get the next step by order
+
         if (currentIndex >= 0 && currentIndex < steps.length - 1) {
           nextStepId = steps[currentIndex + 1]._id;
         }
       }
       
-      // Schedule next step if there is one
+
       let nextStep = null;
       if (nextStepId) {
         nextStep = await WorkflowStep.findById(nextStepId);
@@ -867,7 +860,7 @@ class WorkflowService {
           await this.scheduleWorkflowStep(workflow, nextStep);
         }
       } else {
-        // If there's no next step, check if workflow is complete
+
         const pendingSteps = await WorkflowStep.countDocuments({
           workflow_id: workflowId,
           status: 'pending'

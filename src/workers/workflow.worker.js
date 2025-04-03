@@ -9,14 +9,14 @@ import actionHistoryService from '../services/actionHistory.service.js';
 
 dotenv.config();
 
-// Redis connection
+=
 const connection = new Redis({
   host: process.env.REDIS_HOST || 'localhost',
   port: process.env.REDIS_PORT || 6379,
   password: process.env.REDIS_PASSWORD,
 });
 
-// Worker for workflow tasks
+
 const workflowWorker = new Worker('workflow-tasks', async job => {
   try {
     const { workflowId, stepId, patientId, doctorId } = job.data;
@@ -24,7 +24,7 @@ const workflowWorker = new Worker('workflow-tasks', async job => {
     console.log(`Processing workflow task: ${job.id}`);
     console.log(`Workflow: ${workflowId}, Step: ${stepId}, Patient: ${patientId}`);
     
-    // Get workflow, step and patient information
+
     const workflow = await Workflow.findById(workflowId);
     const step = await WorkflowStep.findById(stepId);
     const patient = await Patient.findById(patientId);
@@ -40,14 +40,14 @@ const workflowWorker = new Worker('workflow-tasks', async job => {
       };
     }
     
-    // Record action in history with the correct patient reference
+
     actionHistoryService.recordAction({
       user_id: doctorId,
       action_type: 'WORKFLOW_STEP_EXECUTION',
       description: `Executing workflow step "${step.name}" for patient ${patient.firstname} ${patient.lastname}`
     });
     
-    // Process the step
+
     const result = await workflowService.processWorkflowStep(job.data);
     
     return {
@@ -61,15 +61,13 @@ const workflowWorker = new Worker('workflow-tasks', async job => {
   }
 }, { connection });
 
-// Alert worker
+
 const alertWorker = new Worker('alerts', async job => {
   try {
     const alertData = job.data;
     console.log('Creating alert:', alertData);
     
-    // Create alert in database
-    // This would typically integrate with the alert model
-    // For demonstration, we'll just log it
+
     
     return {
       status: 'completed',
@@ -81,15 +79,13 @@ const alertWorker = new Worker('alerts', async job => {
   }
 }, { connection });
 
-// Appointment worker
+
 const appointmentWorker = new Worker('appointments', async job => {
   try {
     const appointmentData = job.data;
     console.log('Scheduling appointment:', appointmentData);
     
-    // Create appointment in database
-    // This would typically integrate with the appointment model
-    // For demonstration, we'll just log it
+
     
     return {
       status: 'completed',
@@ -101,7 +97,7 @@ const appointmentWorker = new Worker('appointments', async job => {
   }
 }, { connection });
 
-// Event handlers
+
 workflowWorker.on('completed', job => {
   console.log(`Workflow job ${job.id} completed`);
 });

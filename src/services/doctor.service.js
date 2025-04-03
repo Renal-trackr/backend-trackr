@@ -16,17 +16,17 @@ class DoctorService {
     session.startTransaction();
     
     try {
-      // Generate password using the email service
+
       const tempPassword = emailService.generatePassword();
       const hashedPassword = await bcrypt.hash(tempPassword, 10);
       
-      // Find doctor role
+
       const doctorRole = await Role.findOne({ name: 'MEDECIN' });
       if (!doctorRole) {
         throw new Error('Doctor role not found');
       }
       
-      // Create user account for doctor
+
       const user = new User({
         firstname: doctorData.firstname,
         lastName: doctorData.lastname,
@@ -37,7 +37,7 @@ class DoctorService {
       
       await user.save({ session });
       
-      // Create doctor profile
+
       const doctor = new Doctor({
         firstname: doctorData.firstname,
         lastname: doctorData.lastname,
@@ -49,7 +49,7 @@ class DoctorService {
       
       await doctor.save({ session });
       
-      // Send welcome email
+
       await emailService.sendDoctorWelcomeEmail(doctor, tempPassword);
       
       await session.commitTransaction();

@@ -10,11 +10,11 @@ class WorkflowController {
    */
   async createWorkflow(req, res) {
     try {
-      // Check if it's a simplified test-based workflow
+
       const isTestBasedWorkflow = req.body.test && req.body.alert_condition;
       
       if (isTestBasedWorkflow) {
-        // Handle simplified test-based workflow
+
         const workflowData = {
           name: req.body.name,
           doctor_id: req.body.doctor_id || req.user._id,
@@ -24,7 +24,7 @@ class WorkflowController {
           urgent_action: req.body.urgent_action || {}
         };
         
-        // Validate required fields
+
         const requiredFields = ['name', 'patients_ids', 'test', 'alert_condition'];
         for (const field of requiredFields) {
           if (!workflowData[field] || (Array.isArray(workflowData[field]) && workflowData[field].length === 0)) {
@@ -35,7 +35,7 @@ class WorkflowController {
           }
         }
         
-        // Validate test data
+
         if (!workflowData.test.type) {
           return res.status(400).json({
             success: false,
@@ -43,7 +43,7 @@ class WorkflowController {
           });
         }
         
-        // Validate alert condition
+
         const alertCondition = workflowData.alert_condition;
         if (!alertCondition.parameter || !alertCondition.operator || alertCondition.threshold === undefined) {
           return res.status(400).json({
@@ -52,7 +52,7 @@ class WorkflowController {
           });
         }
         
-        // Create simplified workflow
+
         const workflow = await workflowService.createTestBasedWorkflow(workflowData);
         actionHistoryService.recordAction({
           user_id: req.user._id,
@@ -66,7 +66,7 @@ class WorkflowController {
           data: workflow
         });
       } else {
-        // Handle standard workflow creation
+
         const workflowData = {
           name: req.body.name,
           description: req.body.description,
@@ -75,13 +75,13 @@ class WorkflowController {
           stepsData: req.body.stepsData || []
         };
         
-        // Handle patient IDs
+
         workflowData.patients_ids = req.body.patients_ids || req.body.patient_ids || [];
         if (req.body.patient_id && !workflowData.patients_ids.includes(req.body.patient_id)) {
           workflowData.patients_ids.push(req.body.patient_id);
         }
         
-        // Check if this is a template
+
         if (req.body.is_template) {
           workflowData.is_template = true;
         } else if (!workflowData.patients_ids || workflowData.patients_ids.length === 0) {
@@ -91,7 +91,7 @@ class WorkflowController {
           });
         }
         
-        // Validate required fields
+
         const requiredFields = ['name', 'description'];
         for (const field of requiredFields) {
           if (!workflowData[field]) {
@@ -102,7 +102,7 @@ class WorkflowController {
           }
         }
         
-        // Validate steps
+
         if (!Array.isArray(workflowData.stepsData) || workflowData.stepsData.length === 0) {
           return res.status(400).json({
             success: false,
@@ -110,10 +110,9 @@ class WorkflowController {
           });
         }
         
-        // Create workflow
+
         const workflow = await workflowService.createWorkflow(workflowData);
-        
-        // Record action in history
+
         actionHistoryService.recordAction({
           user_id: req.user._id,
           action_type: 'CREATE_WORKFLOW',
@@ -246,13 +245,13 @@ class WorkflowController {
       const workflowId = req.params.id;
       const updateData = req.body;
       
-      // Remove fields that shouldn't be updated directly
+
       delete updateData._id;
       delete updateData.created_at;
       
       const workflow = await workflowService.updateWorkflow(workflowId, updateData);
       
-      // Record action
+
       actionHistoryService.recordAction({
         user_id: req.user._id,
         action_type: 'UPDATE_WORKFLOW',
@@ -289,7 +288,7 @@ class WorkflowController {
         });
       }
       
-      // Record action
+
       actionHistoryService.recordAction({
         user_id: req.user._id,
         action_type: 'DELETE_WORKFLOW',
@@ -327,7 +326,7 @@ class WorkflowController {
       
       const workflow = await workflowService.updateWorkflow(id, { status });
       
-      // Record action
+
       actionHistoryService.recordAction({
         user_id: req.user._id,
         action_type: 'UPDATE_WORKFLOW_STATUS',
@@ -363,7 +362,7 @@ class WorkflowController {
         });
       }
       
-      // Process the test results
+
       const outcome = await workflowService.processTestResults({
         workflowId,
         stepId,
@@ -372,7 +371,7 @@ class WorkflowController {
         results
       });
       
-      // Record action in history
+
       actionHistoryService.recordAction({
         user_id: req.user._id,
         action_type: 'TEST_RESULTS_SUBMITTED',
@@ -409,7 +408,7 @@ class WorkflowController {
         });
       }
       
-      // Get the template workflow
+
       const template = await workflowService.getWorkflowById(templateId);
       
       if (!template.is_template) {
@@ -419,7 +418,7 @@ class WorkflowController {
         });
       }
       
-      // Prepare workflow data from template
+ 
       const workflowData = {
         name: template.name,
         description: template.description,
@@ -428,24 +427,24 @@ class WorkflowController {
         stepsData: []
       };
       
-      // Get steps from template
+
       const templateSteps = await WorkflowStep.find({ workflow_id: template._id })
         .sort({ order: 1 })
         .lean();
         
-      // Copy steps to workflowData
+
       workflowData.stepsData = templateSteps.map(step => {
         const { _id, workflow_id, created_at, updated_at, ...stepData } = step;
         return stepData;
       });
       
-      // Create workflows for patients
+
       const workflows = await workflowService.createWorkflowsForMultiplePatients(
         workflowData,
         patientIds
       );
       
-      // Record action
+
       actionHistoryService.recordAction({
         user_id: req.user._id,
         action_type: 'APPLY_WORKFLOW_TEMPLATE',

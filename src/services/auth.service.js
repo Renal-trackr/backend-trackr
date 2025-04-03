@@ -15,30 +15,29 @@ class AuthService {
   async login(credentials, metadata = {}) {
     const { email, password } = credentials;
     
-    // Find user by email
+
     const user = await User.findOne({ email });
     if (!user) {
       throw new Error('Invalid credentials');
     }
-    
-    // Verify password
+
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       throw new Error('Invalid credentials');
     }
     
-    // Generate JWT token with 1-hour expiration
+
     const token = jwt.sign(
       { userId: user._id, role: user.role_id },
       process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
     
-    // Calculate expiration time (1 hour from now)
+
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + 24);
     
-    // Create session in database
+
     const session = new Session({
       user_id: user._id,
       token,
@@ -69,42 +68,40 @@ class AuthService {
   async doctorLogin(credentials, metadata = {}) {
     const { email, password } = credentials;
     
-    // Find user by email
+
     const user = await User.findOne({ email });
     if (!user) {
       throw new Error('Invalid credentials');
     }
     
-    // Verify password
+
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       throw new Error('Invalid credentials');
     }
     
-    // Check if user is doctor
+
     const doctorRole = await Role.findOne({ name: 'MEDECIN' });
     if (!doctorRole || user.role_id !== doctorRole._id) {
       throw new Error('Access denied. Not a doctor account.');
     }
-    
-    // Find doctor profile
+
     const doctorProfile = await Doctor.findOne({ user_id: user._id });
     if (!doctorProfile) {
       throw new Error('Doctor profile not found');
     }
     
-    // Generate JWT token with 1-hour expiration
+
     const token = jwt.sign(
       { userId: user._id, role: user.role_id },
       process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
-    
-    // Calculate expiration time (1 hour from now)
+
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + 24);
     
-    // Create session in database
+
     const session = new Session({
       user_id: user._id,
       token,
@@ -138,10 +135,9 @@ class AuthService {
    * @returns {Promise<Object>} Session data if valid
    */
   async verifySession(token) {
-    // First decode the token to make sure it's valid
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
-    // Check if session exists and is active
+
     const session = await Session.findOne({ 
       token, 
       is_active: true,
@@ -183,7 +179,7 @@ class AuthService {
       return false;
     }
     
-    // Find admin role
+
     const adminRole = await Role.findOne({ name: 'ADMIN' });
     if (!adminRole) {
       return false;
@@ -199,27 +195,27 @@ class AuthService {
    */
   async refreshSession(token) {
     try {
-      // Verify the current session
+
       const { session, decoded } = await this.verifySession(token);
       
-      // Generate a new token
+
       const newToken = jwt.sign(
         { userId: decoded.userId, role: decoded.role },
         process.env.JWT_SECRET,
         { expiresIn: '1h' }
       );
       
-      // Calculate new expiration time
+ 
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + 1);
       
-      // Deactivate the current session
+
       await Session.updateOne(
         { _id: session._id },
         { is_active: false }
       );
       
-      // Create a new session
+
       const newSession = new Session({
         user_id: decoded.userId,
         token: newToken,

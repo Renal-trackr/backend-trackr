@@ -9,7 +9,7 @@ class ActionHistoryService {
    * @param {Object} actionData - Action data
    */
   recordAction(actionData) {
-    // Create action history without async/await to avoid any blocking
+
     setImmediate(() => {
       try {
         const actionHistory = new ActionHistory({
@@ -19,7 +19,7 @@ class ActionHistoryService {
           timestamp: new Date()
         });
         
-        // Fire and forget - no await
+
         actionHistory.save()
           .catch(error => {
             console.error('Error recording action history:', error);
@@ -29,7 +29,7 @@ class ActionHistoryService {
       }
     });
     
-    // Return immediately - true non-blocking
+
     return true;
   }
   
@@ -59,28 +59,28 @@ class ActionHistoryService {
    * @returns {Promise<Array>} Enriched action history
    */
   async enrichActionsWithUserInfo(actions) {
-    // Get unique user IDs from actions
+
     const userIds = [...new Set(actions.map(action => action.user_id))];
     
-    // Fetch all users at once
+
     const users = await User.find({ _id: { $in: userIds } });
     
-    // Find the doctor role
+
     const doctorRole = await Role.findOne({ name: 'MEDECIN' });
     
-    // Get all doctor users
+
     const doctorUserIds = users
       .filter(user => user.role_id === doctorRole?._id)
       .map(user => user._id);
     
-    // Fetch doctor profiles
+
     const doctors = await Doctor.find({ user_id: { $in: doctorUserIds } });
     
-    // Create maps for faster lookups
+
     const userMap = new Map(users.map(user => [user._id.toString(), user]));
     const doctorMap = new Map(doctors.map(doctor => [doctor.user_id.toString(), doctor]));
     
-    // Enrich actions with user info
+
     return actions.map(action => {
       const actionObj = action.toObject();
       const userId = action.user_id.toString();
@@ -95,7 +95,7 @@ class ActionHistoryService {
           role_id: user.role_id
         };
         
-        // If user is a doctor, add doctor info
+
         if (user.role_id === doctorRole?._id) {
           const doctor = doctorMap.get(userId);
           if (doctor) {

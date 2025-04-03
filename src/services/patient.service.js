@@ -10,12 +10,12 @@ class PatientService {
    */
   async createPatient(patientData) {
     try {
-      // Validate doctor reference
+
       if (!mongoose.Types.ObjectId.isValid(patientData.doctor_ref)) {
         throw new Error('Invalid doctor reference');
       }
       
-      // Create and save the new patient
+     
       const newPatient = new Patient(patientData);
       await newPatient.save();
       
@@ -79,19 +79,19 @@ class PatientService {
       throw new Error('Invalid patient ID');
     }
     
-    // Check if the patient exists
+
     const patient = await Patient.findById(id);
     if (!patient) {
       throw new Error('Patient not found');
     }
     
-    // Prevent updating certain fields directly
+
     const safeUpdateData = { ...updateData };
     delete safeUpdateData._id;
     delete safeUpdateData.created_at;
     delete safeUpdateData.updated_at;
     
-    // Update the patient
+  
     const updatedPatient = await Patient.findByIdAndUpdate(
       id,
       { $set: safeUpdateData },
