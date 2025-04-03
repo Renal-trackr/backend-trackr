@@ -7,8 +7,9 @@ const WorkflowRouter = Router();
 // Create workflow (supports both standard and simplified formats)
 WorkflowRouter.post('/', authMiddleware.verifyToken, workflowController.createWorkflow);
 
+WorkflowRouter.post('/start', authMiddleware.verifyToken, workflowController.startWorkflowForPatient);
 // Submit test results for a workflow step
-WorkflowRouter.post('/test-results', authMiddleware.verifyToken, workflowController.submitTestResults);
+/*WorkflowRouter.post('/test-results', authMiddleware.verifyToken, workflowController.submitTestResults);
 
 // Get my workflows (for current logged-in user)
 WorkflowRouter.get('/', authMiddleware.verifyToken, workflowController.getMyWorkflows);
@@ -32,6 +33,6 @@ WorkflowRouter.patch('/:id/status', authMiddleware.verifyToken, workflowControll
 WorkflowRouter.post('/apply-template', authMiddleware.verifyToken, workflowController.applyWorkflowTemplate);
 
 // Delete workflow
-WorkflowRouter.delete('/:id', authMiddleware.verifyToken, workflowController.deleteWorkflow);
+WorkflowRouter.delete('/:id', authMiddleware.verifyToken, workflowController.deleteWorkflow);*/
 
 export default WorkflowRouter;

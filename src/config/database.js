@@ -7,13 +7,11 @@ const connectDb = async () => {
             console.log("Connected to MongoDB");
         });
 
-        await mongoose.connect(process.env.MONGODB_URI, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
+        await mongoose.connect(process.env.MONGODB_URI_DEV, {
+            retryWrites: true,
         }).then(async () => {
             console.log("Connected to MongoDB");
 
-            // Initialize database with required data
             await seedService.initialize();
         }).catch((error) => {
             console.error("Error connecting to MongoDB:", error);
