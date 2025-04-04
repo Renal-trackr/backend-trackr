@@ -10,6 +10,8 @@
   "description": "Backend for RenalTrackr, a web application for tracking kidney health.",
   "license": "MIT",
   "dependencies": {
+    "@bull-board/api": "^6.8.0",
+    "@bull-board/express": "^6.8.0",
     "bcryptjs": "^3.0.2",
     "bull": "^4.16.5",
     "bullmq": "^5.45.2",
