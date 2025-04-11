@@ -10,7 +10,7 @@ class AuthController {
     try {
       const { email, password } = req.body;
       
-      // Validate required fields
+
       if (!email || !password) {
         return res.status(400).json({
           success: false,
@@ -18,13 +18,13 @@ class AuthController {
         });
       }
       
-      // Get metadata for session tracking
+
       const metadata = {
         userAgent: req.headers['user-agent'],
         ipAddress: req.ip
       };
       
-      // Login user and create session
+  
       const loginData = await authService.login({ email, password }, metadata);
       
       return res.status(200).json({
@@ -49,7 +49,7 @@ class AuthController {
     try {
       const { email, password } = req.body;
       
-      // Validate required fields
+
       if (!email || !password) {
         return res.status(400).json({
           success: false,
@@ -57,13 +57,13 @@ class AuthController {
         });
       }
       
-      // Get metadata for session tracking
+
       const metadata = {
         userAgent: req.headers['user-agent'],
         ipAddress: req.ip
       };
       
-      // Login doctor and create session
+ 
       const loginData = await authService.doctorLogin({ email, password }, metadata);
       
       return res.status(200).json({

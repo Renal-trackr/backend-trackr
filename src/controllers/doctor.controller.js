@@ -10,7 +10,6 @@ class DoctorController {
    */
   async createDoctor(req, res) {
     try {
-      // Check if user is admin
       const isAdmin = await authService.isAdmin(req.user._id);
       if (!isAdmin) {
         return res.status(403).json({
@@ -19,7 +18,7 @@ class DoctorController {
         });
       }
       
-      // Extract doctor data from request body
+
       const doctorData = {
         firstname: req.body.firstname,
         lastname: req.body.lastname,
@@ -28,7 +27,7 @@ class DoctorController {
         phoneNumber: req.body.phoneNumber
       };
       
-      // Validate required fields
+
       const requiredFields = ['firstname', 'lastname', 'speciality', 'email', 'phoneNumber'];
       for (const field of requiredFields) {
         if (!doctorData[field]) {
@@ -39,10 +38,10 @@ class DoctorController {
         }
       }
       
-      // Create doctor
+
       const newDoctor = await doctorService.createDoctor(doctorData);
       
-      // Record detailed action
+
       actionHistoryService.recordAction({
         user_id: req.user._id,
         action_type: 'CREATE_DOCTOR',

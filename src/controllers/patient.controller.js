@@ -9,7 +9,7 @@ class PatientController {
    */
   async registerPatient(req, res) {
     try {
-      // Extract patient data from request body
+
       const patientData = {
         firstname: req.body.firstname,
         lastname: req.body.lastname,
@@ -26,7 +26,7 @@ class PatientController {
         doctor_ref: req.body.doctor_ref
       };
 
-      // Validate required fields
+
       const requiredFields = ['firstname', 'lastname', 'birth_date', 'gender', 
                              'phoneNumber', 'email', 'address', 
                              'blood_group', 'mrc_status', 'doctor_ref'];
@@ -40,10 +40,10 @@ class PatientController {
         }
       }
 
-      // Create patient
+
       const newPatient = await patientService.createPatient(patientData);
       
-      // Record action in history
+
       actionHistoryService.recordAction({
         user_id: req.user._id,
         action_type: 'REGISTER_PATIENT',
@@ -143,7 +143,7 @@ class PatientController {
       
       const updatedPatient = await patientService.updatePatient(patientId, updateData);
       
-      // Record the action with specific details
+
       actionHistoryService.recordAction({
         user_id: req.user._id,
         action_type: 'UPDATE_PATIENT',
@@ -182,7 +182,7 @@ class PatientController {
       
       const updatedPatient = await patientService.addTreatment(patientId, treatment);
       
-      // Record action with specific treatment details
+
       actionHistoryService.recordAction({
         user_id: req.user._id,
         action_type: 'ADD_TREATMENT',
@@ -213,8 +213,7 @@ class PatientController {
       const historyEntry = req.body;
       
       const updatedPatient = await patientService.addMedicalHistory(patientId, historyEntry);
-      
-      // Record the action asynchronously
+
       actionHistoryService.recordAction({
         user_id: req.user._id,
         action_type: 'ADD_MEDICAL_HISTORY',
@@ -246,7 +245,7 @@ class PatientController {
       
       const updatedPatient = await patientService.addAntecedent(patientId, antecedent);
       
-      // Record the action asynchronously
+   
       actionHistoryService.recordAction({
         user_id: req.user._id,
         action_type: 'ADD_ANTECEDENT',

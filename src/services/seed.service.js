@@ -9,10 +9,8 @@ class SeedService {
    */
   async initializeAdmin() {
     try {
-      // Check if admin role exists
       let adminRole = await Role.findOne({ name: 'ADMIN' });
-      
-      // Create admin role if it doesn't exist
+
       if (!adminRole) {
         adminRole = new Role({
           name: 'ADMIN'
@@ -21,11 +19,11 @@ class SeedService {
         console.log('Admin role created successfully');
       }
       
-      // Check if an admin user already exists
+
       const adminExists = await User.findOne({ role_id: adminRole._id });
       
       if (!adminExists) {
-        // Get admin credentials from environment variables
+
         const adminEmail = process.env.ADMIN_EMAIL;
         const adminPassword = process.env.ADMIN_PASSWORD;
         
@@ -34,10 +32,10 @@ class SeedService {
           return;
         }
         
-        // Hash the password
+
         const hashedPassword = await bcrypt.hash(adminPassword, 10);
         
-        // Create the admin user
+
         const adminUser = new User({
           firstname: 'HOUNDJI',
           lastName: 'Ratheil',
@@ -62,10 +60,10 @@ class SeedService {
    */
   async initializeRoles() {
     try {
-      // Check if doctor role exists
+
       const doctorRoleExists = await Role.findOne({ name: 'MEDECIN' });
       
-      // Create doctor role if it doesn't exist
+
       if (!doctorRoleExists) {
         const doctorRole = new Role({
           name: 'MEDECIN'

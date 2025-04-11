@@ -80,7 +80,7 @@ class ProcessorService {
         }
     }
     async reminderStep(step, patient, doctor) {
-        // TODO: Reminder step action
+
         console.log("Reminder step action", {
             step, patient, doctor
         })
