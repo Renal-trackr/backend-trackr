@@ -11,9 +11,9 @@ import actionHistoryRoutes from './src/routes/actionHistory.routes.js';
 // import './workers/workflow.worker.js';
 import actionTrackerMiddleware from './src/middlewares/actionTracker.middleware.js';
 
-import "./src/utils/bullmq/index.js";
-import { BULLMQ_DASHBOARD_PATH } from "./src/utils/constants.js";
-import { bullMQDashboard } from "./src/utils/bullmq/dashboard.js";
+// import "./src/utils/bullmq/index.js";
+// import { BULLMQ_DASHBOARD_PATH } from "./src/utils/constants.js";
+// import { bullMQDashboard } from "./src/utils/bullmq/dashboard.js";
 
 
 dotenv.config();
@@ -37,7 +37,7 @@ app.use('/api/action-history', actionHistoryRoutes);
 
 // BullMQ Dashboard
 
-app.use(BULLMQ_DASHBOARD_PATH, bullMQDashboard);
+// app.use(BULLMQ_DASHBOARD_PATH, bullMQDashboard);
 
 app.listen(PORT, () => {
     console.log(`Server is running on url http://localhost:${PORT}`);
